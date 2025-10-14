@@ -12,8 +12,17 @@
 
 #include "shader.h"
 #include "stb_image.h"
+#include "vertices.h"
 
-float mixRatio = 0;
+float mixRatio = .6;
+
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
+const float V_FOV = 78;
+
+glm::vec3 cameraPos = glm::vec3(0, 0, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0, 0, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0, 1.0f, 0);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -21,6 +30,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void processInput(GLFWwindow* window) {
 	float currentTime = glfwGetTime();
+	static float lastTime = -1;
 	static float lastTimePressed = -1;
 	if (lastTimePressed < 0) {
 		lastTimePressed = glfwGetTime();
@@ -42,6 +52,32 @@ void processInput(GLFWwindow* window) {
 			mixRatio = 0;
 		}
 	}
+
+	// Handle the camera movemont
+	if (lastTime < 0) {
+		lastTime = currentTime;
+	}
+	float deltaTime = currentTime - lastTime;
+	const float cameraSpeed = 3.0f;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cameraPos += cameraFront * cameraSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameraPos -= cameraFront * cameraSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameraPos += glm::normalize(glm::cross(cameraUp, cameraFront)) * cameraSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameraPos -= glm::normalize(glm::cross(cameraUp, cameraFront)) * cameraSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		cameraPos += cameraUp * cameraSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		cameraPos -= cameraUp * cameraSpeed * deltaTime;
+	}
+	lastTime = currentTime;
 }
 
 int main() {
@@ -53,7 +89,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create a window
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -67,16 +103,9 @@ int main() {
 	}
 
 	// Set the viewport
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, WIDTH, HEIGHT);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	float vertices[] = {
-		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1, 1,   // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1, 0,   // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0, 0,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0, 1    // top left 
-	};
 	unsigned int indices[] = {
 		0, 1, 2,
 		2, 3, 0,
@@ -92,17 +121,17 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//unsigned int EBO;
+	//glGenBuffers(1, &EBO);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	// Specify the layout of the vertex data
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	//glEnableVertexAttribArray(2);
 
 	// Setting up textures
 	
@@ -180,6 +209,10 @@ int main() {
 	shader->setInt("texture1", 0);
 	shader->setInt("texture2", 1);
 
+
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
+
 	while (!glfwWindowShouldClose(window)) {
 		// Calculate fps
 		frameCount++;
@@ -191,7 +224,7 @@ int main() {
 
 		// Clear the screen	
 		glClearColor(.2f, .3f, .3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Bind Texture
 		glActiveTexture(GL_TEXTURE0);
@@ -203,23 +236,31 @@ int main() {
 		shader->use();
 		shader->setFloat("mixRatio", mixRatio);
 
-		// Do some transformations
-		glm::mat4 trans(1.0f);
-		trans = glm::translate(trans, glm::vec3(.5f, -.5f, 0));
-		trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0, 0, 1.0f));
-		shader->setMatrix4f("transform", trans);
+
+		// Setup the model, view and projection matrices
+		glm::mat4 view(1.0f);
+		//glm::vec3 camPos(0);
+		//float currentTime = glfwGetTime();
+		//float radius = 6.0f;
+		//camPos.x = radius * std::cos(currentTime);
+		//camPos.z = -radius * std::sin(currentTime);
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		glm::mat4 projection = glm::perspective(glm::radians(V_FOV), static_cast<float>(WIDTH) / HEIGHT, .01f, 100.0f);
+
+		// Set the projection matrices
+		shader->setMatrix4f("view", view);
+		shader->setMatrix4f("projection", projection);
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (int i = 0; i < 10; i++) {
 
-		// Do some transformations
-		trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(-.5f, .5f, 0));
-		trans = glm::scale(trans, glm::vec3(static_cast<float>(std::sin(glfwGetTime())) / 4 + .75));
-		shader->setMatrix4f("transform", trans);
-
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			model = glm::rotate(model, glm::radians(50.0f + 20.0f * i), glm::vec3(1.0f, .3f, .5f));
+			shader->setMatrix4f("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+		//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();

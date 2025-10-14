@@ -25,6 +25,8 @@ namespace ME {
 			throw ShaderException(std::string("ERROR::SHADER::FAIL_TO_READ_SHADER_FILE\n") + e.what());
 		}
 
+		removeBOM(vertexCode);
+		removeBOM(fragmentCode);
 		const char* vertexCodeString = vertexCode.c_str();
 		const char* fragmentCodeString = fragmentCode.c_str();
 

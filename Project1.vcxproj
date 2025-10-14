@@ -189,10 +189,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\OneDrive\文档\glad\src\glad.c" />
+    <ClCompile Include="..\..\..\..\glad\src\glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fs.frag" />
@@ -202,6 +203,7 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="vertices.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="awesomeface.png" />
