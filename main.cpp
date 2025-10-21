@@ -245,6 +245,8 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	glDeleteTextures(1, &texture1.getGlID());
+	glDeleteTextures(1, &texture2.getGlID());
 	std::cout << "terminated.";
 
 	glfwTerminate();
