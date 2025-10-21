@@ -22,15 +22,44 @@ ME::Texture::Texture(const char* path) {
 		throw ME::MyError("Fail to load texture image");
 	}
 	// Loading textures and generating mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	GLenum format;
+	if (nrChannels == 1)
+		format = GL_RED;
+	else if (nrChannels == 3)
+		format = GL_RGB;
+	else if (nrChannels == 4)
+		format = GL_RGBA;
+	else
+		throw ME::MyError("Unsupported texture format");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
-GLuint ME::Texture::getGlID() const {
+ME::Texture::Texture(Texture&& other) noexcept {
+	glID = other.glID;
+	data = other.data;
+	allocated = other.allocated;
+	other.data = nullptr;
+	other.allocated = false;
+}
+ME::Texture& ME::Texture::operator=(Texture&& other) noexcept {
+	if (this != &other) {
+		stbi_image_free(data);
+		glDeleteTextures(1, &glID);
+		glID = other.glID;
+		data = other.data;
+		allocated = other.allocated;
+		other.data = nullptr;
+		other.allocated = false;
+	}
+	return *this;
+}
+GLuint& ME::Texture::getGlID() {
 	if (!allocated) {
 		throw ME::MyError("Using uninitialized texture");
 	}
 	return glID;
 }
 ME::Texture::~Texture() {
+	//std::cout << "~Texture freeing " << static_cast<void*>(data) << std::endl;
 	stbi_image_free(data);
 }
