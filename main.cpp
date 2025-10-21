@@ -13,6 +13,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "stb_image.h"
+#include "texture.h"
 #include "vertices.h"
 
 float mixRatio = .6;
@@ -158,59 +159,24 @@ int main() {
 	glEnableVertexAttribArray(1);
 
 	// Setting up textures
-	
 	// Texture1
-	// Generating a texture
-	unsigned int texture1;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	// Set Texture wraping configurations
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// Loading a texture image
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	ME::Texture texture1;
 	try {
-		if (data == nullptr) {
-			throw ME::MyError("Fail to load texture image");
-		}
+		texture1 = ME::Texture("container.jpg");
 	}
 	catch (const ME::MyError& e) {
 		std::cerr << "Error on loading texture:\n" << e.what() << '\n';
 		return -1;
 	}
-	// Loading textures and generating mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
-
 	// Texture2
-	// Generating a texture
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	// Set Texture wraping configurations
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	ME::Texture texture2;
 	try {
-		if (data == nullptr) {
-			throw ME::MyError("Fail to load texture image");
-		}
+		texture2 = ME::Texture("awesomeface.png");
 	}
 	catch (const ME::MyError& e) {
 		std::cerr << "Error on loading texture:\n" << e.what() << '\n';
 		return -1;
 	}
-	// Loading textures and generating mipmaps
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
 
 	// Create and compile shaders
 	std::unique_ptr<ME::Shader> shader;
@@ -251,9 +217,9 @@ int main() {
 
 		// Bind Texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		glBindTexture(GL_TEXTURE_2D, texture1.getGlID());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, texture2.getGlID());
 
 		// Draw the triangles
 		shader->use();
@@ -279,6 +245,7 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	std::cout << "terminated.";
 
 	glfwTerminate();
 	return 0;
