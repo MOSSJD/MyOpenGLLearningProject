@@ -1,5 +1,5 @@
 ﻿#include <string>
-#include "Util.h"
+#include "util.h"
 void ME::removeBOM(std::string& string) {
 	if (string.size() >= 3 &&
 		(unsigned char)string.at(0) == 0xEF &&

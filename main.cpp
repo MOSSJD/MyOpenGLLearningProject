@@ -10,6 +10,7 @@
 #include <string>
 #include <algorithm>
 
+#include "camera.h"
 #include "shader.h"
 #include "stb_image.h"
 #include "vertices.h"
@@ -18,66 +19,85 @@ float mixRatio = .6;
 
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
-const float V_FOV = 78;
 
-glm::vec3 cameraPos = glm::vec3(0, 0, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0, 0, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0, 1.0f, 0);
+ME::Camera camera = ME::Camera();
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+}
+void mouseCallback(GLFWwindow* window, double xPos, double yPos)
+{
+	static float lastX, lastY;
+	static bool firstMouse;
+	if (firstMouse)
+	{
+		lastX = xPos;
+		lastY = yPos;
+		firstMouse = false;
+	}
+
+	float xOffset = xPos - lastX;
+	float yOffset = lastY - yPos;
+	lastX = xPos;
+	lastY = yPos;
+	camera.processMouseMovement(xOffset, yOffset);
+}
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	camera.processZooming(yOffset);
 }
 
 void processInput(GLFWwindow* window) {
 	float currentTime = glfwGetTime();
-	static float lastTime = -1;
-	static float lastTimePressed = -1;
-	if (lastTimePressed < 0) {
-		lastTimePressed = glfwGetTime();
+	static float lastTimePressedArrowKey = -1;
+	if (lastTimePressedArrowKey < 0) {
+		lastTimePressedArrowKey = glfwGetTime();
 	}
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
-	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && currentTime - lastTimePressed > .2) {
-		lastTimePressed = currentTime;
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && currentTime - lastTimePressedArrowKey > .2) {
+		lastTimePressedArrowKey = currentTime;
 		mixRatio += .1;
 		if (mixRatio > 1) {
 			mixRatio = 1;
 		}
 	}
-	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && currentTime - lastTimePressed > .2) {
-		lastTimePressed = currentTime;
+	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && currentTime - lastTimePressedArrowKey > .2) {
+		lastTimePressedArrowKey = currentTime;
 		mixRatio -= .1;
 		if (mixRatio < 0) {
 			mixRatio = 0;
 		}
 	}
 
-	// Handle the camera movemont
+	// Handle camera movemont
+
+	static float lastTime = -1;
 	if (lastTime < 0) {
 		lastTime = currentTime;
 	}
 	float deltaTime = currentTime - lastTime;
-	const float cameraSpeed = 3.0f;
+	lastTime = currentTime;
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		cameraPos += cameraFront * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::FORWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		cameraPos -= cameraFront * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::BACKWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameraPos += glm::normalize(glm::cross(cameraUp, cameraFront)) * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::LEFT, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameraPos -= glm::normalize(glm::cross(cameraUp, cameraFront)) * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::RIGHT, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		cameraPos += cameraUp * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::DOWN, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		cameraPos -= cameraUp * cameraSpeed * deltaTime;
+		camera.processCameraMovement(ME::Camera::Direction::UP, deltaTime);
 	}
-	lastTime = currentTime;
 }
 
 int main() {
@@ -104,7 +124,10 @@ int main() {
 
 	// Set the viewport
 	glViewport(0, 0, WIDTH, HEIGHT);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetScrollCallback(window, scrollCallback);
 
 	unsigned int indices[] = {
 		0, 1, 2,
@@ -121,17 +144,18 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Setting up element buffer objects
 	//unsigned int EBO;
 	//glGenBuffers(1, &EBO);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 	// Specify the layout of the vertex data
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	//glEnableVertexAttribArray(2);
 
 	// Setting up textures
 	
@@ -200,19 +224,18 @@ int main() {
 
 	// Set the rendering mode
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	// Compute fps
-	int frameCount = 0;
-	double startTime = glfwGetTime();
 
 	// Setup texture sampler ID
 	shader->use();
 	shader->setInt("texture1", 0);
 	shader->setInt("texture2", 1);
 
-
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
+	// fps
+	int frameCount = 0;
+	double startTime = glfwGetTime();
 	while (!glfwWindowShouldClose(window)) {
 		// Calculate fps
 		frameCount++;
@@ -236,24 +259,15 @@ int main() {
 		shader->use();
 		shader->setFloat("mixRatio", mixRatio);
 
-
-		// Setup the model, view and projection matrices
-		glm::mat4 view(1.0f);
-		//glm::vec3 camPos(0);
-		//float currentTime = glfwGetTime();
-		//float radius = 6.0f;
-		//camPos.x = radius * std::cos(currentTime);
-		//camPos.z = -radius * std::sin(currentTime);
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		glm::mat4 projection = glm::perspective(glm::radians(V_FOV), static_cast<float>(WIDTH) / HEIGHT, .01f, 100.0f);
-
-		// Set the projection matrices
+		// Set view and projection matrix
+		glm::mat4 view = camera.getViewMatrix();
 		shader->setMatrix4f("view", view);
+		glm::mat4 projection = camera.getProjectionMatrix(WIDTH, HEIGHT);
 		shader->setMatrix4f("projection", projection);
 
 		glBindVertexArray(VAO);
 		for (int i = 0; i < 10; i++) {
-
+			// Set model matrix
 			glm::mat4 model(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			model = glm::rotate(model, glm::radians(50.0f + 20.0f * i), glm::vec3(1.0f, .3f, .5f));

@@ -10,7 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
-#include "Util.h"
+#include "util.h"
 
 namespace ME {
 	class Shader {
