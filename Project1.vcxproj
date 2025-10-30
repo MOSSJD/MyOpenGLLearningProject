@@ -198,8 +198,10 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fs.frag" />
-    <None Include="vs.vert" />
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
+    <None Include="lightCube.frag" />
+    <None Include="lightCube.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />

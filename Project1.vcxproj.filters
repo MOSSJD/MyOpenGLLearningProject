@@ -58,10 +58,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vs.vert">
+    <None Include="lighting.vert">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="fs.frag">
+    <None Include="lighting.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="lightCube.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="lightCube.vert">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
