@@ -1,0 +1,65 @@
+{
+  "tasks": [
+    {
+        "label": "build with cl",
+        "type": "shell",
+        "command": "cl",
+        "args": [
+            "/Zi",
+            "/EHsc",
+            // Release
+            "/MD",
+            // 源文件列表
+            "main.cpp",
+            "shader.cpp",
+            "camera.cpp",
+            "texture.cpp",
+            "util.cpp",
+            "stb_image.cpp",
+            "C:\\Users\\33695\\OneDrive\\文档\\glad\\src\\glad.c",
+            // 重命名可执行文件
+            "/Fe:",
+            "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "/I",
+            "C:\\Users\\33695\\OneDrive\\文档\\glad\\include",
+            "/I",
+            "C:\\Users\\33695\\OneDrive\\文档\\glfw\\glfw3.4\\include",
+            "/I",
+            "C:\\Users\\33695\\OneDrive\\文档\\glm",
+            "/I",
+            "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\include",
+            "/I",
+            "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt",
+            "/I",
+            "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\shared",
+            "/I",
+            "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\um",
+            "/link",
+            "/LIBPATH:C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\lib\\x64",
+            "/LIBPATH:C:\\Users\\33695\\OneDrive\\文档\\glfw\\glfw3.4\\lib",
+            "/LIBPATH:C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\um\\x64",
+            "/LIBPATH:C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.26100.0\\ucrt\\x64",
+            "glfw3.lib",
+            "OpenGL32.Lib",
+            "gdi32.lib",
+            "user32.lib",
+            "Shell32.lib"
+        ],
+        "group": {
+            "kind": "build",
+            "isDefault": true
+        },
+        "problemMatcher": [
+            "$msCompile"
+        ]
+    },
+    {
+    "label": "run program",
+    "type": "shell",
+    "command": ".\\main.exe",
+    "group": "none",
+    "problemMatcher": []
+    },
+],
+  "version": "2.0.0"
+}

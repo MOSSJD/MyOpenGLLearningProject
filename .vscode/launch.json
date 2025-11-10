@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "调试运行 (F5)",
+            "type": "cppvsdbg",                 // 使用 MSVC 调试器
+            "request": "launch",
+            "program": "${workspaceFolder}/main.exe", // 你的可执行文件路径
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "build with cl"    // 你的编译任务名称
+        },
+        {
+            "name": "仅运行 (Ctrl+F5)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "build with cl"
+        }
+    ]
+}
