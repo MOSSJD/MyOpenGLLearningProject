@@ -20,6 +20,7 @@ const int WIDTH = 1920;
 const int HEIGHT = 1080;
 
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+float specularStrength = 0.5;
 
 ME::Camera camera = ME::Camera();
 
@@ -121,13 +122,15 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// Setting up cube VAO
+	// Setting up light VAO
 	GLuint lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 	// Setting up cube VAO
 	GLuint cubeVAO;
 	glGenVertexArrays(1, &cubeVAO);
@@ -135,10 +138,6 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)3);
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
 
 	// Create and compile shaders
 	std::unique_ptr<ME::Shader> lightingShader;
@@ -161,7 +160,6 @@ int main() {
 	lightingShader->use();
 	lightingShader->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 	lightingShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-
 	lightingShader->setVec3("lightPos", lightPos);
 
 	// fps
@@ -181,16 +179,17 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Draw the triangles
-		lightingShader->use();
-
+		
 		// Set view, projection and model matrix uniforms
 		glm::mat4 view = camera.getViewMatrix();
-		lightingShader->setMatrix4f("view", view);
 		glm::mat4 projection = camera.getProjectionMatrix(WIDTH, HEIGHT);
+		
+		// Passing MVP matrices
+		lightingShader->use();
+		lightingShader->setVec3("viewPos", camera.pos); 
+		lightingShader->setMatrix4f("view", view);
 		lightingShader->setMatrix4f("projection", projection);
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
 		lightingShader->setMatrix4f("model", model);
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -199,6 +198,8 @@ int main() {
 		lightCubeShader->setMatrix4f("view", view);
 		lightCubeShader->setMatrix4f("projection", projection);
 		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
 		lightCubeShader->setMatrix4f("model", model);
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -208,6 +209,7 @@ int main() {
 	}
 	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteBuffers(1, &VBO);
 	std::cout << "terminated.";
 
 	glfwTerminate();

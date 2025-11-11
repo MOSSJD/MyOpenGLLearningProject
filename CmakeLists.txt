@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.20)
+project(MyOpenGLApp LANGUAGES C CXX)
+
+set(SRC
+    main.cpp
+    shader.cpp
+    camera.cpp
+    texture.cpp
+    util.cpp
+    stb_image.cpp
+    "C:/Users/33695/OneDrive/文档/glad/src/glad.c"
+)
+
+add_executable(main ${SRC})
+
+target_include_directories(main PRIVATE
+    "C:/Users/33695/OneDrive/文档/glad/include"
+    "C:/Users/33695/OneDrive/文档/glfw/glfw3.4/include"
+    "C:/Users/33695/OneDrive/文档/glm"
+)
+
+# link_directories("C:/Users/33695/Documents/glfw/glfw3.4/lib")
+
+target_link_libraries(main
+    "C:/Users/33695/Documents/glfw/glfw3.4/lib/glfw3.lib"
+    OpenGL32
+    gdi32
+    user32
+    Shell32
+)

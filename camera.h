@@ -26,10 +26,10 @@ namespace ME {
 		void processCameraMovement(Direction direction, float deltaTime);
 		void processZooming(double yOffset);
 		void setMovementSpeed(float speed);
+		glm::vec3 pos;
 	private:
 		float yaw;
 		float pitch;
-		glm::vec3 pos;
 		glm::vec3 up;
 		glm::vec3 front;
 		float v_fov;

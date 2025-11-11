@@ -19,7 +19,7 @@
             "C:\\Users\\33695\\OneDrive\\文档\\glad\\src\\glad.c",
             // 重命名可执行文件
             "/Fe:",
-            "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "main.exe",
             "/I",
             "C:\\Users\\33695\\OneDrive\\文档\\glad\\include",
             "/I",
@@ -54,12 +54,29 @@
         ]
     },
     {
-    "label": "run program",
-    "type": "shell",
-    "command": ".\\main.exe",
-    "group": "none",
-    "problemMatcher": []
+      "label": "run program",
+      "type": "shell",
+      "command": ".\\main.exe",
+      "group": "none",
+      "problemMatcher": []
     },
+    {
+      "label": "clean build artifacts",
+      "type": "shell",
+      "command": "cmd",
+      "args": ["/c", "del /q *.obj *.ilk"],
+      "problemMatcher": []
+    },
+    {
+      "label": "build, run and clean",
+      "dependsOn": ["build with cl", "run program", "clean build artifacts"],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
 ],
   "version": "2.0.0"
 }
