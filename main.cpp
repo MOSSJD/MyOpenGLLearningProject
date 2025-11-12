@@ -19,9 +19,6 @@
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
 
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-float specularStrength = 0.5;
-
 ME::Camera camera = ME::Camera();
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -158,13 +155,24 @@ int main() {
 	}
 
 	lightingShader->use();
-	lightingShader->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-	lightingShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-	lightingShader->setVec3("lightPos", lightPos);
-
+	// Setting block materials
+	lightingShader->setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+	lightingShader->setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+	lightingShader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+	lightingShader->setFloat("material.shininess", 32.0f);
+	// Setting light colors
+	lightingShader->setVec3("light.ambient",  glm::vec3(0.2f, 0.2f, 0.2f));
+	lightingShader->setVec3("light.diffuse",  glm::vec3(0.5f, 0.5f, 0.5f)); // darken diffuse light a bit
+	lightingShader->setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f)); 
 	// fps
 	int frameCount = 0;
 	double startTime = glfwGetTime();
+	// calculating light rotation
+	glm::vec3 rotateCenter(0.f, 2, 0);
+	float rotateRadius = 2.0f;
+	float lastTime = glfwGetTime();
+	float rotateSpeed = 2;
+	float theta = 0;
 	while (!glfwWindowShouldClose(window)) {
 		// Calculate fps
 		frameCount++;
@@ -173,45 +181,53 @@ int main() {
 		glfwSetWindowTitle(window, title.c_str());
 		// Process input
 		processInput(window);
-
 		// Clear the screen	
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Draw the triangles
-		
-		// Set view, projection and model matrix uniforms
+		// Drawing triangles
+		// Setting view, and projection matrix
 		glm::mat4 view = camera.getViewMatrix();
 		glm::mat4 projection = camera.getProjectionMatrix(WIDTH, HEIGHT);
-		
 		// Passing MVP matrices
 		lightingShader->use();
+		// Setting the light position
+		float currentTime = glfwGetTime();
+		float deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+		theta += rotateSpeed * deltaTime;
+		glm::vec3 lightPos = rotateCenter;
+		lightPos.x += rotateRadius * std::cos(theta);
+		lightPos.z += rotateRadius * std::sin(theta);
+		lightingShader->setVec3("light.position", lightPos);
+		// Passing camera position and view and projection matrices
 		lightingShader->setVec3("viewPos", camera.pos); 
 		lightingShader->setMatrix4f("view", view);
 		lightingShader->setMatrix4f("projection", projection);
+		// Setting and passing the model matrix
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader->setMatrix4f("model", model);
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
+		// Passing view and projection matrices
 		lightCubeShader->use();
 		lightCubeShader->setMatrix4f("view", view);
 		lightCubeShader->setMatrix4f("projection", projection);
+		// Light cube model matrix
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lightCubeShader->setMatrix4f("model", model);
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
+		// Backprocessing
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &VBO);
-	std::cout << "terminated.";
-
 	glfwTerminate();
+	
+	std::cout << "terminated.";
 	return 0;
 }
