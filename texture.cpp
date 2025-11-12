@@ -44,7 +44,8 @@ ME::Texture::Texture(Texture&& other) noexcept {
 ME::Texture& ME::Texture::operator=(Texture&& other) noexcept {
 	if (this != &other) {
 		stbi_image_free(data);
-		glDeleteTextures(1, &glID);
+		if (allocated)
+			glDeleteTextures(1, &glID);
 		glID = other.glID;
 		data = other.data;
 		allocated = other.allocated;
@@ -60,6 +61,7 @@ GLuint& ME::Texture::getGlID() {
 	return glID;
 }
 ME::Texture::~Texture() {
-	//std::cout << "~Texture freeing " << static_cast<void*>(data) << std::endl;
+	if (allocated)
+		glDeleteTextures(1, &glID);
 	stbi_image_free(data);
 }

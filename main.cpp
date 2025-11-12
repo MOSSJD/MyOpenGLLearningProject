@@ -82,7 +82,7 @@ void processInput(GLFWwindow* window) {
 }
 
 int main() {
-
+	camera.setMovementSpeed(2);
 	// Initialization
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -130,15 +130,6 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	// Loading textures
-	std::unique_ptr<ME::Texture> boxTexture;
-	try {
-		std::unique_ptr<ME::Texture> myTexture = std::make_unique<ME::Texture>("container2.png");
-		boxTexture = std::move(myTexture);
-	}
-	catch (ME::MyError e) {
-		std::cerr << "Error on loading texture:" << e.what() << std::endl;
-	}
 	// Setting up cube VAO
 	GLuint cubeVAO;
 	glGenVertexArrays(1, &cubeVAO);
@@ -146,6 +137,24 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// Loading textures
+	std::unique_ptr<ME::Texture> diffuseTexture;
+	try {
+		std::unique_ptr<ME::Texture> tempTexure = std::make_unique<ME::Texture>("container2.png");
+		diffuseTexture = std::move(tempTexure);
+	}
+	catch (ME::MyError e) {
+		std::cerr << "Error on loading diffuse texture:" << e.what() << std::endl;
+	}
+	std::unique_ptr<ME::Texture> specularTexture;
+	try {
+		std::unique_ptr<ME::Texture> tempTexure = std::make_unique<ME::Texture>("container2_specular.png");
+		specularTexture = std::move(tempTexure);
+	}
+	catch (ME::MyError e) {
+		std::cerr << "Error on loading specular texture:" << e.what() << std::endl;
+	}
 
 	// Create and compile shaders
 	std::unique_ptr<ME::Shader> lightingShader;
@@ -167,7 +176,6 @@ int main() {
 
 	lightingShader->use();
 	// Setting block materials
-	lightingShader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 	lightingShader->setFloat("material.shininess", 16.f);
 	// Setting light colors
 	lightingShader->setVec3("light.specular", glm::vec3(1.f, 1.f, 1.f)); 
@@ -213,8 +221,15 @@ int main() {
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader->setMatrix4f("model", model);
 		// Using texture
+		// 为diffuse指定所使用的纹理单元（GL_TEXTURE0）
+		lightingShader->setInt("material.diffuse", 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, boxTexture->getGlID());
+		glBindTexture(GL_TEXTURE_2D, diffuseTexture->getGlID());
+		// 为specular指定所使用的纹理单元（GL_TEXTURE1）
+		lightingShader->setInt("material.specular", 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularTexture->getGlID());
+		// Rendering
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// Passing view and projection matrices
