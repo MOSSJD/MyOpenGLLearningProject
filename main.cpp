@@ -124,16 +124,27 @@ int main() {
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	// Loading textures
+	std::unique_ptr<ME::Texture> boxTexture;
+	try {
+		std::unique_ptr<ME::Texture> myTexture = std::make_unique<ME::Texture>("container2.png");
+		boxTexture = std::move(myTexture);
+	}
+	catch (ME::MyError e) {
+		std::cerr << "Error on loading texture:" << e.what() << std::endl;
+	}
 	// Setting up cube VAO
 	GLuint cubeVAO;
 	glGenVertexArrays(1, &cubeVAO);
 	glBindVertexArray(cubeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// Create and compile shaders
@@ -156,19 +167,15 @@ int main() {
 
 	lightingShader->use();
 	// Setting block materials
-	lightingShader->setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-	lightingShader->setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
 	lightingShader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-	lightingShader->setFloat("material.shininess", 32.0f);
+	lightingShader->setFloat("material.shininess", 16.f);
 	// Setting light colors
-	lightingShader->setVec3("light.ambient",  glm::vec3(0.2f, 0.2f, 0.2f));
-	lightingShader->setVec3("light.diffuse",  glm::vec3(0.5f, 0.5f, 0.5f)); // darken diffuse light a bit
-	lightingShader->setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f)); 
+	lightingShader->setVec3("light.specular", glm::vec3(1.f, 1.f, 1.f)); 
 	// fps
 	int frameCount = 0;
 	double startTime = glfwGetTime();
 	// calculating light rotation
-	glm::vec3 rotateCenter(0.f, 2, 0);
+	glm::vec3 rotateCenter(1.f, 2, .5f);
 	float rotateRadius = 2.0f;
 	float lastTime = glfwGetTime();
 	float rotateSpeed = 2;
@@ -191,14 +198,13 @@ int main() {
 		// Passing MVP matrices
 		lightingShader->use();
 		// Setting the light position
-		float currentTime = glfwGetTime();
-		float deltaTime = currentTime - lastTime;
-		lastTime = currentTime;
-		theta += rotateSpeed * deltaTime;
 		glm::vec3 lightPos = rotateCenter;
-		lightPos.x += rotateRadius * std::cos(theta);
-		lightPos.z += rotateRadius * std::sin(theta);
 		lightingShader->setVec3("light.position", lightPos);
+		glm::vec3 lightColor = glm::vec3(1.0f);
+		glm::vec3 diffuseColor = lightColor; 
+		glm::vec3 ambientColor = diffuseColor * .3f; 
+		lightingShader->setVec3("light.ambient", ambientColor);
+		lightingShader->setVec3("light.diffuse", diffuseColor);
 		// Passing camera position and view and projection matrices
 		lightingShader->setVec3("viewPos", camera.pos); 
 		lightingShader->setMatrix4f("view", view);
@@ -206,10 +212,14 @@ int main() {
 		// Setting and passing the model matrix
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader->setMatrix4f("model", model);
+		// Using texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, boxTexture->getGlID());
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// Passing view and projection matrices
 		lightCubeShader->use();
+		lightCubeShader->setVec3("lightColor", diffuseColor);
 		lightCubeShader->setMatrix4f("view", view);
 		lightCubeShader->setMatrix4f("projection", projection);
 		// Light cube model matrix
@@ -227,7 +237,7 @@ int main() {
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
-	
+
 	std::cout << "terminated.";
 	return 0;
 }
