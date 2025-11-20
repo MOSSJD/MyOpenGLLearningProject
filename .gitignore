@@ -419,3 +419,7 @@ FodyWeavers.xsd
 
 # Cmake files
 CMakeFiles/
+build/
+
+# Build files
+*.exe
