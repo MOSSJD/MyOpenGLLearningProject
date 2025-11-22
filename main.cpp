@@ -209,12 +209,16 @@ int main() {
 		// Setting light properties
 		lightingShader->setVec3("light.position",  camera.pos);
 		lightingShader->setVec3("light.direction", camera.front);
-		lightingShader->setFloat("light.cutOff",   glm::cos(glm::radians(12.5f)));
+		lightingShader->setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		lightingShader->setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 		glm::vec3 lightColor = glm::vec3(1.0f);
 		glm::vec3 diffuseColor = lightColor; 
 		glm::vec3 ambientColor = diffuseColor * .3f; 
 		lightingShader->setVec3("light.ambient", ambientColor);
 		lightingShader->setVec3("light.diffuse", diffuseColor);
+		lightingShader->setFloat("light.constant", 1.0f);
+        lightingShader->setFloat("light.linear", 0.09f);
+        lightingShader->setFloat("light.quadratic", 0.032f);
 		// Passing camera position and view and projection matrices
 		lightingShader->setVec3("viewPos", camera.pos); 
 		lightingShader->setMatrix4f("view", view);
