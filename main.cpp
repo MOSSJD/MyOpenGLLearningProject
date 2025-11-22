@@ -206,9 +206,13 @@ int main() {
 		// 渲染场景模型
 		// Passing MVP matrices
 		lightingShader->use();
-		// Setting the light direction
+		// Setting light properties
 		glm::vec3 lightDir = glm::vec3(-1.0f, -1.0f, -1.0f);
-		lightingShader->setVec3("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f)); 
+		glm::vec3 lightPosition = glm::vec3(-0.2f, -1.0f, -0.3f);
+		lightingShader->setVec3("light.position", lightPosition); 
+		lightingShader->setFloat("light.constant",  1.0f);
+		lightingShader->setFloat("light.linear",    0.045f);
+		lightingShader->setFloat("light.quadratic", 0.0075f);
 		glm::vec3 lightColor = glm::vec3(1.0f);
 		glm::vec3 diffuseColor = lightColor; 
 		glm::vec3 ambientColor = diffuseColor * .3f; 
