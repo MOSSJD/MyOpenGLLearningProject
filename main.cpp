@@ -244,6 +244,18 @@ int main() {
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+		// 绘制光源模型
+		lightCubeShader->use();
+		lightCubeShader->setMatrix4f("view", view);
+		lightCubeShader->setMatrix4f("projection", projection);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPosition);
+		model = glm::scale(model, glm::vec3(.2f));
+		lightCubeShader->setMatrix4f("model", model);
+		lightCubeShader->setVec3("lightColor", glm::vec3(1.f, 1, 1) * glm::vec3(.8f));
+		glBindVertexArray(lightCubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		// Backprocessing
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -7,7 +7,7 @@ struct Material {
 };
 
 struct Light {
-    vec3 direction;
+    vec3 position;
 
     float constant;
     float linear;
@@ -36,7 +36,7 @@ void main()
 
     // Diffuse
     vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(-light.direction);
+    vec3 lightDir = normalize(light.position - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     // Specular
     vec3 viewDir = normalize(viewPos - fragPos);
