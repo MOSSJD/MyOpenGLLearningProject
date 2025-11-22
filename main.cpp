@@ -205,9 +205,13 @@ int main() {
 		glm::mat4 projection = camera.getProjectionMatrix(WIDTH, HEIGHT);
 		// Passing MVP matrices
 		lightingShader->use();
-		// Setting the light position
-		glm::vec3 lightPos = rotateCenter;
-		lightingShader->setVec3("light.position", lightPos);
+		// Setting light properties
+		glm::vec3 lightDir = glm::vec3(-1.0f, -1.0f, -1.0f);
+		glm::vec3 lightPosition = glm::vec3(-0.2f, -1.0f, -0.3f);
+		lightingShader->setVec3("light.position", lightPosition); 
+		lightingShader->setFloat("light.constant",  1.0f);
+		lightingShader->setFloat("light.linear",    0.045f);
+		lightingShader->setFloat("light.quadratic", 0.0075f);
 		glm::vec3 lightColor = glm::vec3(1.0f);
 		glm::vec3 diffuseColor = lightColor; 
 		glm::vec3 ambientColor = diffuseColor * .3f; 
@@ -230,20 +234,17 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularTexture->getGlID());
 		// Rendering
-		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		// Passing view and projection matrices
-		lightCubeShader->use();
-		lightCubeShader->setVec3("lightColor", diffuseColor);
-		lightCubeShader->setMatrix4f("view", view);
-		lightCubeShader->setMatrix4f("projection", projection);
-		// Light cube model matrix
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		lightCubeShader->setMatrix4f("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		// 传递模型矩阵
+		for(unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			lightingShader->setMatrix4f("model", model);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		// Backprocessing
 		glfwSwapBuffers(window);
 		glfwPollEvents();
