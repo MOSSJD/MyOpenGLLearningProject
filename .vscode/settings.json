@@ -46,5 +46,6 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp"
-    }
+    },
+    "cmake.generator": "Visual Studio 17 2022"
 }
