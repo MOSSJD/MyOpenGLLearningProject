@@ -207,12 +207,9 @@ int main() {
 		// Passing MVP matrices
 		lightingShader->use();
 		// Setting light properties
-		glm::vec3 lightDir = glm::vec3(-1.0f, -1.0f, -1.0f);
-		glm::vec3 lightPosition = glm::vec3(-0.2f, -1.0f, -0.3f);
-		lightingShader->setVec3("light.position", lightPosition); 
-		lightingShader->setFloat("light.constant",  1.0f);
-		lightingShader->setFloat("light.linear",    0.045f);
-		lightingShader->setFloat("light.quadratic", 0.0075f);
+		lightingShader->setVec3("light.position",  camera.pos);
+		lightingShader->setVec3("light.direction", camera.front);
+		lightingShader->setFloat("light.cutOff",   glm::cos(glm::radians(12.5f)));
 		glm::vec3 lightColor = glm::vec3(1.0f);
 		glm::vec3 diffuseColor = lightColor; 
 		glm::vec3 ambientColor = diffuseColor * .3f; 
@@ -244,17 +241,6 @@ int main() {
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		// 绘制光源模型
-		lightCubeShader->use();
-		lightCubeShader->setMatrix4f("view", view);
-		lightCubeShader->setMatrix4f("projection", projection);
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPosition);
-		model = glm::scale(model, glm::vec3(.2f));
-		lightCubeShader->setMatrix4f("model", model);
-		lightCubeShader->setVec3("lightColor", glm::vec3(1.f, 1, 1) * glm::vec3(.8f));
-		glBindVertexArray(lightCubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// Backprocessing
 		glfwSwapBuffers(window);

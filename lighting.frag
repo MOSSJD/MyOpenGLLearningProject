@@ -8,10 +8,8 @@ struct Material {
 
 struct Light {
     vec3 position;
-
-    float constant;
-    float linear;
-    float quadratic;
+    vec3 direction;
+    float cutOff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -30,24 +28,27 @@ out vec4 fragColor;
 
 void main()
 {
-    // Light strength
-    float dist = distance(viewPos, fragPos);
-    float attenuation = 1.0f / (light.constant + light.linear * dist + light.quadratic * dist * dist);
-
-    // Diffuse
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(light.position - fragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    // Specular
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, textureCoordinate));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, textureCoordinate));
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, textureCoordinate));
-    // vec3 specular = vec3(0.0f);
+    // Test if is in the range
+    vec3 lightDir = normalize(light.position - fragPos);
+    float theta = dot(-lightDir, normalize(light.direction));
+    if (theta >= light.cutOff) {
+        // Diffuse
+        vec3 norm = normalize(normal);
+        float diff = max(dot(norm, lightDir), 0.0);
+        // Specular
+        vec3 viewDir = normalize(viewPos - fragPos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
-    vec3 result = attenuation * (ambient + diffuse + specular);
-    fragColor = vec4(result, 1.0);
+        vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, textureCoordinate));
+        vec3 specular = light.specular * spec * vec3(texture(material.specular, textureCoordinate));
+        // vec3 specular = vec3(0.0f);
+
+        vec3 result = ambient + diffuse + specular;
+        fragColor = vec4(result, 1.0);
+    }
+    else {
+        fragColor = vec4(ambient, 1.0);
+    }
 }  
