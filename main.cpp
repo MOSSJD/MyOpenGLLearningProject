@@ -120,9 +120,9 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	// Setting up light VAO
-	GLuint lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
+	GLuint sceneVAO;
+	glGenVertexArrays(1, &sceneVAO);
+	glBindVertexArray(sceneVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -131,9 +131,9 @@ int main() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 	// Setting up cube VAO
-	GLuint cubeVAO;
-	glGenVertexArrays(1, &cubeVAO);
-	glBindVertexArray(cubeVAO);
+	GLuint lightCubeVAO;
+	glGenVertexArrays(1, &lightCubeVAO);
+	glBindVertexArray(lightCubeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -203,11 +203,12 @@ int main() {
 		// Setting view, and projection matrix
 		glm::mat4 view = camera.getViewMatrix();
 		glm::mat4 projection = camera.getProjectionMatrix(WIDTH, HEIGHT);
+		// 渲染场景模型
 		// Passing MVP matrices
 		lightingShader->use();
-		// Setting the light position
-		glm::vec3 lightPos = rotateCenter;
-		lightingShader->setVec3("light.position", lightPos);
+		// Setting the light direction
+		glm::vec3 lightDir = glm::vec3(-1.0f, -1.0f, -1.0f);
+		lightingShader->setVec3("light.direction", glm::vec3(-0.2f, -1.0f, -0.3f)); 
 		glm::vec3 lightColor = glm::vec3(1.0f);
 		glm::vec3 diffuseColor = lightColor; 
 		glm::vec3 ambientColor = diffuseColor * .3f; 
@@ -217,10 +218,8 @@ int main() {
 		lightingShader->setVec3("viewPos", camera.pos); 
 		lightingShader->setMatrix4f("view", view);
 		lightingShader->setMatrix4f("projection", projection);
-		// Setting and passing the model matrix
-		glm::mat4 model = glm::mat4(1.0f);
-		lightingShader->setMatrix4f("model", model);
 		// Using texture
+		glBindVertexArray(sceneVAO);
 		// 为diffuse指定所使用的纹理单元（GL_TEXTURE0）
 		lightingShader->setInt("material.diffuse", 0);
 		glActiveTexture(GL_TEXTURE0);
@@ -230,26 +229,23 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularTexture->getGlID());
 		// Rendering
-		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		// Passing view and projection matrices
-		lightCubeShader->use();
-		lightCubeShader->setVec3("lightColor", diffuseColor);
-		lightCubeShader->setMatrix4f("view", view);
-		lightCubeShader->setMatrix4f("projection", projection);
-		// Light cube model matrix
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		lightCubeShader->setMatrix4f("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		// 传递模型矩阵
+		for(unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			lightingShader->setMatrix4f("model", model);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		// Backprocessing
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteVertexArrays(1, &lightVAO);
-	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteVertexArrays(1, &sceneVAO);
+	glDeleteVertexArrays(1, &lightCubeVAO);
 	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
 
